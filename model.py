@@ -66,6 +66,7 @@ class pix2pix(object):
         self.g_bn_d9 = batch_norm(name='g_bn_d9')
         self.g_bn_d10 = batch_norm(name='g_bn_d10')
         self.g_bn_d11 = batch_norm(name='g_bn_d11')
+        self.g_bn_d12 = batch_norm(name='g_bn_d12')
 
         self.dataset_name = dataset_name
         self.checkpoint_dir = checkpoint_dir
@@ -303,16 +304,16 @@ class pix2pix(object):
         d10 = tf.nn.dropout(self.g_bn_d8(self.d10), 0.5)
 
         self.d11, self.d11_w, self.d11_b = deconv2d(tf.nn.relu(d10), [self.batch_size, s16, s16, self.gf_dim * 8], name='g_d11', with_w=True)
-        d11 = self.g_bn_d8(self.d11)
+        d11 = self.g_bn_d9(self.d11)
 
         self.d12, self.d12_w, self.d12_b = deconv2d(tf.nn.relu(d11), [self.batch_size, s8, s8, self.gf_dim * 4], name='g_d12', with_w=True)
-        d12 = self.g_bn_d9(self.d12)
+        d12 = self.g_bn_d10(self.d12)
 
         self.d13, self.d13_w, self.d13_b = deconv2d(tf.nn.relu(d12), [self.batch_size, s4, s4, self.gf_dim * 2], name='g_d13', with_w=True)
-        d13 = self.g_bn_d10(self.d13)
+        d13 = self.g_bn_d11(self.d13)
 
         self.d14, self.d14_w, self.d14_b = deconv2d(tf.nn.relu(d13), [self.batch_size, s2, s2, self.gf_dim], name='g_d14', with_w=True)
-        d14 = self.g_bn_d11(self.d14)
+        d14 = self.g_bn_d12(self.d14)
 
         self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.input_c_dim], name='g_d15', with_w=True)
 
@@ -412,19 +413,19 @@ class pix2pix(object):
 
         self.d11, self.d11_w, self.d11_b = deconv2d(tf.nn.relu(d10), [self.batch_size, s16, s16, self.gf_dim * 8],
                                                     name='g_d11', with_w=True)
-        d11 = self.g_bn_d8(self.d11)
+        d11 = self.g_bn_d9(self.d11)
 
         self.d12, self.d12_w, self.d12_b = deconv2d(tf.nn.relu(d11), [self.batch_size, s8, s8, self.gf_dim * 4],
                                                     name='g_d12', with_w=True)
-        d12 = self.g_bn_d9(self.d12)
+        d12 = self.g_bn_d10(self.d12)
 
         self.d13, self.d13_w, self.d13_b = deconv2d(tf.nn.relu(d12), [self.batch_size, s4, s4, self.gf_dim * 2],
                                                     name='g_d13', with_w=True)
-        d13 = self.g_bn_d10(self.d13)
+        d13 = self.g_bn_d11(self.d13)
 
         self.d14, self.d14_w, self.d14_b = deconv2d(tf.nn.relu(d13), [self.batch_size, s2, s2, self.gf_dim], name='g_d14',
                                                     with_w=True)
-        d14 = self.g_bn_d11(self.d14)
+        d14 = self.g_bn_d12(self.d14)
 
         self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.input_c_dim],
                                                     name='g_d15', with_w=True)
