@@ -23,7 +23,7 @@ def load_data(image_path, flip=True, is_test=False):
 
     img_A = img_A / 127.5 - 1.
     img_B = img_B / 127.5 - 1.
-    img_C = img_C / 127.5 - 1.
+    img_C = img_C / 255.0
 
     img_B = img_B[:, :, 0:1]
     img_C = img_C[:, :, 0:1]
