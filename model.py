@@ -62,6 +62,11 @@ class pix2pix(object):
         self.g_bn_d6 = batch_norm(name='g_bn_d6')
         self.g_bn_d7 = batch_norm(name='g_bn_d7')
 
+        self.g_bn_d8 = batch_norm(name='g_bn_d8')
+        self.g_bn_d9 = batch_norm(name='g_bn_d9')
+        self.g_bn_d10 = batch_norm(name='g_bn_d10')
+        self.g_bn_d11 = batch_norm(name='g_bn_d11')
+
         self.dataset_name = dataset_name
         self.checkpoint_dir = checkpoint_dir
         self.build_model()
@@ -74,8 +79,9 @@ class pix2pix(object):
 
         self.real_B = self.real_data[:, :, :, :self.output_c_dim]
         self.real_A = self.real_data[:, :, :, self.output_c_dim:self.output_c_dim + self.input_c_dim]
+        self.real_C = self.real_data[:, :, :, self.output_c_dim + self.input_c_dim:self.output_c_dim + 2 * self.input_c_dim]
 
-        self.fake_B = self.generator(self.real_A)
+        self.fake_B, self.fake_C = self.generator(self.real_A)
 
         self.real_AB = tf.concat(3, [self.real_A, self.real_B])
         self.fake_AB = tf.concat(3, [self.real_A, self.fake_B])
@@ -91,7 +97,8 @@ class pix2pix(object):
         self.d_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits, tf.ones_like(self.D)))
         self.d_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits_, tf.zeros_like(self.D_)))
         self.g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_))) \
-                        + self.L1_lambda * tf.reduce_mean(tf.abs(self.real_B - self.fake_B))
+                      + self.L1_lambda * tf.reduce_mean(tf.abs(self.real_B - self.fake_B)) \
+                      + self.L1_lambda * tf.reduce_mean(tf.abs(self.real_C - self.fake_C))
 
         self.d_loss_real_sum = tf.scalar_summary("d_loss_real", self.d_loss_real)
         self.d_loss_fake_sum = tf.scalar_summary("d_loss_fake", self.d_loss_fake)
@@ -187,10 +194,10 @@ class pix2pix(object):
                     % (epoch, idx, batch_idxs,
                         time.time() - start_time, errD_fake+errD_real, errG))
 
-                if np.mod(counter, 500) == 1:
+                if np.mod(counter, 5) == 1:
                     self.sample_model(args.sample_dir, epoch, idx)
 
-                if np.mod(counter, 500) == 2:
+                if np.mod(counter, 5) == 2:
                     self.save(args.checkpoint_dir, counter)
 
     def discriminator(self, image, y=None, reuse=False):
@@ -229,24 +236,24 @@ class pix2pix(object):
         # e5 is (8 x 8 x self.gf_dim*8)
         e6 = self.g_bn_e6(conv2d(lrelu(e5), self.gf_dim*8, name='g_e6_conv'))
         # e6 is (4 x 4 x self.gf_dim*8)
-        e7 = self.g_bn_e7(conv2d(lrelu(e6), self.gf_dim*8, name='g_e7_conv'))
+        # e7 = self.g_bn_e7(conv2d(lrelu(e6), self.gf_dim*8, name='g_e7_conv'))
         # e7 is (2 x 2 x self.gf_dim*8)
-        e8 = self.g_bn_e8(conv2d(lrelu(e7), self.gf_dim*8, name='g_e8_conv'))
+        # e8 = self.g_bn_e8(conv2d(lrelu(e7), self.gf_dim*8, name='g_e8_conv'))
         # e8 is (1 x 1 x self.gf_dim*8)
 
-        self.d1, self.d1_w, self.d1_b = deconv2d(tf.nn.relu(e8),
-            [self.batch_size, s128, s128, self.gf_dim*8], name='g_d1', with_w=True)
-        d1 = tf.nn.dropout(self.g_bn_d1(self.d1), 0.5)
-        d1 = tf.concat(3, [d1, e7])
+        # self.d1, self.d1_w, self.d1_b = deconv2d(tf.nn.relu(e8),
+        #     [self.batch_size, s128, s128, self.gf_dim*8], name='g_d1', with_w=True)
+        # d1 = tf.nn.dropout(self.g_bn_d1(self.d1), 0.5)
+        # d1 = tf.concat(3, [d1, e7])
         # d1 is (2 x 2 x self.gf_dim*8*2)
 
-        self.d2, self.d2_w, self.d2_b = deconv2d(tf.nn.relu(d1),
-            [self.batch_size, s64, s64, self.gf_dim*8], name='g_d2', with_w=True)
-        d2 = tf.nn.dropout(self.g_bn_d2(self.d2), 0.5)
-        d2 = tf.concat(3, [d2, e6])
+        # self.d2, self.d2_w, self.d2_b = deconv2d(tf.nn.relu(d1),
+        #     [self.batch_size, s64, s64, self.gf_dim*8], name='g_d2', with_w=True)
+        # d2 = tf.nn.dropout(self.g_bn_d2(self.d2), 0.5)
+        # d2 = tf.concat(3, [d2, e6])
         # d2 is (4 x 4 x self.gf_dim*8*2)
 
-        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(d2),
+        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(e6),
             [self.batch_size, s32, s32, self.gf_dim*8], name='g_d3', with_w=True)
         d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 0.5)
         d3 = tf.concat(3, [d3, e5])
@@ -280,7 +287,42 @@ class pix2pix(object):
             [self.batch_size, s, s, self.output_c_dim], name='g_d8', with_w=True)
         # d8 is (256 x 256 x output_c_dim)
 
-        return tf.nn.tanh(self.d8)
+        self.d9, self.d9_w, self.d9_b = deconv2d(tf.nn.relu(d7),
+                                                 [self.batch_size, s, s, self.input_c_dim], name='g_d9', with_w=True)
+        # d9 is (256 x 256 x input_c_dim)
+
+        z = tf.random_normal([self.batch_size, 10])
+
+        self.d10, self.d10_w, self.d10_b = deconv2d(    tf.nn.relu(
+                                                            tf.reshape(
+                                                                linear(z, s64 * s64 * self.gf_dim * 8, 'random_noise'),
+                                                                [self.batch_size, s64, s64, self.gf_dim * 8])),
+                                                        [self.batch_size, s32, s32, self.gf_dim * 8],
+                                                        name='g_d10',
+                                                        with_w=True)
+        d10 = tf.nn.dropout(self.g_bn_d8(self.d10), 0.5)
+
+        self.d11, self.d11_w, self.d11_b = deconv2d(tf.nn.relu(d10), [self.batch_size, s16, s16, self.gf_dim * 8], name='g_d11', with_w=True)
+        d11 = self.g_bn_d8(self.d11)
+
+        self.d12, self.d12_w, self.d12_b = deconv2d(tf.nn.relu(d11), [self.batch_size, s8, s8, self.gf_dim * 4], name='g_d12', with_w=True)
+        d12 = self.g_bn_d9(self.d12)
+
+        self.d13, self.d13_w, self.d13_b = deconv2d(tf.nn.relu(d12), [self.batch_size, s4, s4, self.gf_dim * 2], name='g_d13', with_w=True)
+        d13 = self.g_bn_d10(self.d13)
+
+        self.d14, self.d14_w, self.d14_b = deconv2d(tf.nn.relu(d13), [self.batch_size, s2, s2, self.gf_dim], name='g_d14', with_w=True)
+        d14 = self.g_bn_d11(self.d14)
+
+        self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.input_c_dim], name='g_d15', with_w=True)
+
+        self.mask = tf.sigmoid(self.d9)
+        mask = tf.tile(self.mask, [1, 1, 1, 3])
+
+        return tf.add(tf.mul(tf.nn.tanh(self.d8), mask),
+                      tf.mul(tf.nn.tanh(self.d15), tf.sub(tf.ones_like(mask), mask))), self.mask
+
+        # return tf.nn.tanh(self.d8), tf.nn.sigmoid(self.d9)
 
     def sampler(self, image, y=None):
         tf.get_variable_scope().reuse_variables()
@@ -301,24 +343,24 @@ class pix2pix(object):
         # e5 is (8 x 8 x self.gf_dim*8)
         e6 = self.g_bn_e6(conv2d(lrelu(e5), self.gf_dim*8, name='g_e6_conv'))
         # e6 is (4 x 4 x self.gf_dim*8)
-        e7 = self.g_bn_e7(conv2d(lrelu(e6), self.gf_dim*8, name='g_e7_conv'))
+        # e7 = self.g_bn_e7(conv2d(lrelu(e6), self.gf_dim*8, name='g_e7_conv'))
         # e7 is (2 x 2 x self.gf_dim*8)
-        e8 = self.g_bn_e8(conv2d(lrelu(e7), self.gf_dim*8, name='g_e8_conv'))
+        # e8 = self.g_bn_e8(conv2d(lrelu(e7), self.gf_dim*8, name='g_e8_conv'))
         # e8 is (1 x 1 x self.gf_dim*8)
 
-        self.d1, self.d1_w, self.d1_b = deconv2d(tf.nn.relu(e8),
-            [self.batch_size, s128, s128, self.gf_dim*8], name='g_d1', with_w=True)
-        d1 = tf.nn.dropout(self.g_bn_d1(self.d1), 0.5)
-        d1 = tf.concat(3, [d1, e7])
+        # self.d1, self.d1_w, self.d1_b = deconv2d(tf.nn.relu(e8),
+        #     [self.batch_size, s128, s128, self.gf_dim*8], name='g_d1', with_w=True)
+        # d1 = tf.nn.dropout(self.g_bn_d1(self.d1), 0.5)
+        # d1 = tf.concat(3, [d1, e7])
         # d1 is (2 x 2 x self.gf_dim*8*2)
 
-        self.d2, self.d2_w, self.d2_b = deconv2d(tf.nn.relu(d1),
-            [self.batch_size, s64, s64, self.gf_dim*8], name='g_d2', with_w=True)
-        d2 = tf.nn.dropout(self.g_bn_d2(self.d2), 0.5)
-        d2 = tf.concat(3, [d2, e6])
+        # self.d2, self.d2_w, self.d2_b = deconv2d(tf.nn.relu(d1),
+        #     [self.batch_size, s64, s64, self.gf_dim*8], name='g_d2', with_w=True)
+        # d2 = tf.nn.dropout(self.g_bn_d2(self.d2), 0.5)
+        # d2 = tf.concat(3, [d2, e6])
         # d2 is (4 x 4 x self.gf_dim*8*2)
 
-        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(d2),
+        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(e6),
             [self.batch_size, s32, s32, self.gf_dim*8], name='g_d3', with_w=True)
         d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 0.5)
         d3 = tf.concat(3, [d3, e5])
@@ -352,7 +394,45 @@ class pix2pix(object):
             [self.batch_size, s, s, self.output_c_dim], name='g_d8', with_w=True)
         # d8 is (256 x 256 x output_c_dim)
 
-        return tf.nn.tanh(self.d8)
+        self.d9, self.d9_w, self.d9_b = deconv2d(tf.nn.relu(d7),
+                                                 [self.batch_size, s, s, self.input_c_dim], name='g_d9', with_w=True)
+
+        # d9 is (256 x 256 x input_c_dim)
+
+        z = tf.random_normal([self.batch_size, 10])
+
+        self.d10, self.d10_w, self.d10_b = deconv2d(tf.nn.relu(
+            tf.reshape(
+                linear(z, s64 * s64 * self.gf_dim * 8, 'random_noise'),
+                [self.batch_size, s64, s64, self.gf_dim * 8])),
+            [self.batch_size, s32, s32, self.gf_dim * 8],
+            name='g_d10',
+            with_w=True)
+        d10 = tf.nn.dropout(self.g_bn_d8(self.d10), 0.5)
+
+        self.d11, self.d11_w, self.d11_b = deconv2d(tf.nn.relu(d10), [self.batch_size, s16, s16, self.gf_dim * 8],
+                                                    name='g_d11', with_w=True)
+        d11 = self.g_bn_d8(self.d11)
+
+        self.d12, self.d12_w, self.d12_b = deconv2d(tf.nn.relu(d11), [self.batch_size, s8, s8, self.gf_dim * 4],
+                                                    name='g_d12', with_w=True)
+        d12 = self.g_bn_d9(self.d12)
+
+        self.d13, self.d13_w, self.d13_b = deconv2d(tf.nn.relu(d12), [self.batch_size, s4, s4, self.gf_dim * 2],
+                                                    name='g_d13', with_w=True)
+        d13 = self.g_bn_d10(self.d13)
+
+        self.d14, self.d14_w, self.d14_b = deconv2d(tf.nn.relu(d13), [self.batch_size, s2, s2, self.gf_dim], name='g_d14',
+                                                    with_w=True)
+        d14 = self.g_bn_d11(self.d14)
+
+        self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.input_c_dim],
+                                                    name='g_d15', with_w=True)
+
+        mask = tf.tile(tf.sigmoid(self.d9), [1, 1, 1, 3])
+
+        return tf.add(tf.mul(tf.nn.tanh(self.d8), mask),
+                      tf.mul(tf.nn.tanh(self.d15), tf.sub(tf.ones_like(mask), mask)))
 
     def save(self, checkpoint_dir, step):
         model_name = "pix2pix.model"
@@ -364,7 +444,8 @@ class pix2pix(object):
 
         self.saver.save(self.sess,
                         os.path.join(checkpoint_dir, model_name),
-                        global_step=step)
+                        global_step=step,
+                        keep_checkpoint_every_n_hours=1)
 
     def load(self, checkpoint_dir):
         print(" [*] Reading checkpoint...")
@@ -394,7 +475,7 @@ class pix2pix(object):
         print("Loading testing images ...")
         sample = [load_data(sample_file, is_test=True) for sample_file in sample_files]
 
-        if (self.is_grayscale):
+        if False:#(self.is_grayscale):
             sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
         else:
             sample_images = np.array(sample).astype(np.float32)
