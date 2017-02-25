@@ -195,10 +195,10 @@ class pix2pix(object):
                     % (epoch, idx, batch_idxs,
                         time.time() - start_time, errD_fake+errD_real, errG))
 
-                if np.mod(counter, 5) == 1:
+                if np.mod(counter, 500) == 0:
                     self.sample_model(args.sample_dir, epoch, idx)
 
-                if np.mod(counter, 5) == 2:
+                if np.mod(counter, 500) == 0:
                     self.save(args.checkpoint_dir, counter)
 
     def discriminator(self, image, y=None, reuse=False):
