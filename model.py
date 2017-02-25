@@ -72,8 +72,8 @@ class pix2pix(object):
                                          self.input_c_dim + self.output_c_dim],
                                         name='real_A_and_B_images')
 
-        self.real_B = self.real_data[:, :, :, :self.input_c_dim]
-        self.real_A = self.real_data[:, :, :, self.input_c_dim:self.input_c_dim + self.output_c_dim]
+        self.real_B = self.real_data[:, :, :, :self.output_c_dim]
+        self.real_A = self.real_data[:, :, :, self.output_c_dim:self.output_c_dim + self.input_c_dim]
 
         self.fake_B = self.generator(self.real_A)
 
@@ -113,7 +113,7 @@ class pix2pix(object):
         data = np.random.choice(glob('./datasets/{}/val/*.jpg'.format(self.dataset_name)), self.batch_size)
         sample = [load_data(sample_file) for sample_file in data]
 
-        if (self.is_grayscale):
+        if False:#(self.is_grayscale):
             sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
         else:
             sample_images = np.array(sample).astype(np.float32)
@@ -158,7 +158,7 @@ class pix2pix(object):
             for idx in xrange(0, batch_idxs):
                 batch_files = data[idx*self.batch_size:(idx+1)*self.batch_size]
                 batch = [load_data(batch_file) for batch_file in batch_files]
-                if (self.is_grayscale):
+                if False:#(self.is_grayscale):
                     batch_images = np.array(batch).astype(np.float32)[:, :, :, None]
                 else:
                     batch_images = np.array(batch).astype(np.float32)
@@ -187,7 +187,7 @@ class pix2pix(object):
                     % (epoch, idx, batch_idxs,
                         time.time() - start_time, errD_fake+errD_real, errG))
 
-                if np.mod(counter, 100) == 1:
+                if np.mod(counter, 500) == 1:
                     self.sample_model(args.sample_dir, epoch, idx)
 
                 if np.mod(counter, 500) == 2:
@@ -387,8 +387,8 @@ class pix2pix(object):
         sample_files = glob('./datasets/{}/val/*.jpg'.format(self.dataset_name))
 
         # sort testing input
-        n = [int(i) for i in map(lambda x: x.split('/')[-1].split('.jpg')[0], sample_files)]
-        sample_files = [x for (y, x) in sorted(zip(n, sample_files))]
+        #n = [int(i) for i in map(lambda x: x.split('/')[-1].split('.jpg')[0], sample_files)]
+        #sample_files = [x for (y, x) in sorted(zip(n, sample_files))]
 
         # load testing input
         print("Loading testing images ...")
