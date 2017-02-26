@@ -41,8 +41,8 @@ def main(_):
         os.makedirs(args.checkpoint_dir)
     if not os.path.exists(args.sample_dir):
         os.makedirs(args.sample_dir)
-    if not os.path.exists(args.test_dir):
-        os.makedirs(args.test_dir)
+    # if not os.path.exists(args.test_dir):
+    #     os.makedirs(args.test_dir)
 
     with tf.Session() as sess:
         model = pix2pix(sess, image_size=args.fine_size, batch_size=args.batch_size,
