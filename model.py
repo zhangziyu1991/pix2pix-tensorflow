@@ -400,7 +400,7 @@ class pix2pix(object):
 
         # d9 is (256 x 256 x input_c_dim)
 
-        z = tf.random_normal([self.batch_size, 10])
+        z = tf.random_normal([self.batch_size, 10], seed=123)
 
         self.d10, self.d10_w, self.d10_b = deconv2d(tf.nn.relu(
             tf.reshape(
