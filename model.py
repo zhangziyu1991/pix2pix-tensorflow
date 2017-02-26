@@ -461,11 +461,11 @@ class pix2pix(object):
         else:
             return False
 
-    def test(self, args):
+    def test(self, args, folder='test'):
         """Test pix2pix"""
         tf.initialize_all_variables().run()
 
-        sample_files = glob('./datasets/{}/val/*.jpg'.format(self.dataset_name))
+        sample_files = sorted(glob('./datasets/{}/{}/*.jpg'.format(self.dataset_name, folder)))
 
         # sort testing input
         #n = [int(i) for i in map(lambda x: x.split('/')[-1].split('.jpg')[0], sample_files)]
@@ -491,6 +491,8 @@ class pix2pix(object):
         else:
             print(" [!] Load failed...")
 
+        os.mkdir('./{}'.format(folder));
+
         for i, sample_image in enumerate(sample_images):
             idx = i+1
             print("sampling image ", idx)
@@ -499,4 +501,4 @@ class pix2pix(object):
                 feed_dict={self.real_data: sample_image}
             )
             save_images(samples, [self.batch_size, 1],
-                        './{}/test_{:04d}.png'.format(args.test_dir, idx))
+                        './{}/test_{:04d}.png'.format(folder, idx))
