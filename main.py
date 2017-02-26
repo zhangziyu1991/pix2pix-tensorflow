@@ -52,7 +52,10 @@ def main(_):
         if args.phase == 'train':
             model.train(args)
         else:
-            model.test(args)
+            model.test(args, 'test')
+            model.test(args, 'test_animated_0.08pi')
+            model.test(args, 'test_animated_0.16pi')
+            model.test(args, 'test_animated_0.25pi')
 
 if __name__ == '__main__':
     tf.app.run()
