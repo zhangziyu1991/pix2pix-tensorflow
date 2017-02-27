@@ -315,7 +315,7 @@ class pix2pix(object):
         self.d14, self.d14_w, self.d14_b = deconv2d(tf.nn.relu(d13), [self.batch_size, s2, s2, self.gf_dim], name='g_d14', with_w=True)
         d14 = self.g_bn_d12(self.d14)
 
-        self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.input_c_dim], name='g_d15', with_w=True)
+        self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.output_c_dim], name='g_d15', with_w=True)
 
         self.mask = tf.sigmoid(self.d9)
         mask = tf.tile(self.mask, [1, 1, 1, 3])
@@ -427,7 +427,7 @@ class pix2pix(object):
                                                     with_w=True)
         d14 = self.g_bn_d12(self.d14)
 
-        self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.input_c_dim],
+        self.d15, self.d15_w, self.d15_b = deconv2d(tf.nn.relu(d14), [self.batch_size, s, s, self.output_c_dim],
                                                     name='g_d15', with_w=True)
 
         mask = tf.tile(tf.sigmoid(self.d9), [1, 1, 1, 3])
