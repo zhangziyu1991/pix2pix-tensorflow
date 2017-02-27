@@ -89,7 +89,7 @@ class pix2pix(object):
         self.D, self.D_logits = self.discriminator(self.real_AB, reuse=False)
         self.D_, self.D_logits_ = self.discriminator(self.fake_AB, reuse=True)
 
-        self.fake_B_sample = self.sampler(self.real_A)
+        self.fake_B_sample, self.fake_C_sample = self.sampler(self.real_A)
 
         self.d_sum = tf.histogram_summary("d", self.D)
         self.d__sum = tf.histogram_summary("d_", self.D_)
@@ -433,7 +433,7 @@ class pix2pix(object):
         mask = tf.tile(tf.sigmoid(self.d9), [1, 1, 1, 3])
 
         return tf.add(tf.mul(tf.nn.tanh(self.d8), mask),
-                      tf.mul(tf.nn.tanh(self.d15), tf.sub(tf.ones_like(mask), mask)))
+                      tf.mul(tf.nn.tanh(self.d15), tf.sub(tf.ones_like(mask), mask))), tf.sigmoid(self.d9)
 
     def save(self, checkpoint_dir, step):
         model_name = "pix2pix.model"
@@ -491,14 +491,16 @@ class pix2pix(object):
         else:
             print(" [!] Load failed...")
 
-        os.mkdir('./{}'.format(folder));
+        os.mkdir('./{}'.format(folder))
 
         for i, sample_image in enumerate(sample_images):
             idx = i+1
             print("sampling image ", idx)
-            samples = self.sess.run(
-                self.fake_B_sample,
+            samples, samples2 = self.sess.run(
+                [self.fake_B_sample, self.fake_C_sample],
                 feed_dict={self.real_data: sample_image}
             )
             save_images(samples, [self.batch_size, 1],
                         './{}/test_{:04d}.png'.format(folder, idx))
+            save_images2(samples2, [self.batch_size, 1],
+                        './{}/test_{:04d}_mask.png'.format(folder, idx))

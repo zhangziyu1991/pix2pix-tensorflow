@@ -73,6 +73,9 @@ def get_image(image_path, image_size, is_crop=True, resize_w=64, is_grayscale = 
 def save_images(images, size, image_path):
     return imsave(inverse_transform(images), size, image_path)
 
+def save_images2(images, size, image_path):
+    return imsave(images, size, image_path)
+
 def imread(path, is_grayscale = False):
     if (is_grayscale):
         return scipy.misc.imread(path, flatten = True).astype(np.float)
