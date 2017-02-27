@@ -503,9 +503,11 @@ class pix2pix(object):
                 [self.fake_B_sample, self.fake_C_sample, self.background, self.foreground],
                 feed_dict={self.real_data: sample_image}
             )
-            # print(sample_image.shape)
-            # print(samples2.shape)
-            # print(samples.shape)
+            print(sample_image.shape)
+            print(mask.shape)
+            print(background.shape)
+            print(foreground.shape)
+            print(fake_image.shape)
             # sketch, mask, background, foreground, back+fore
             save_images(np.concatenate((np.tile(sample_image[:, :, :, 3:4], (1, 1, 1, 3)),
                                         np.tile(2 * (mask - 0.5), (1, 1, 1, 3)),
