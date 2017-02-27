@@ -500,7 +500,7 @@ class pix2pix(object):
                 [self.fake_B_sample, self.fake_C_sample],
                 feed_dict={self.real_data: sample_image}
             )
-            save_images(samples, [self.batch_size, 1],
+            save_images(np.concatenate((sample_image[0, :, 64:128], np.tile(samples2, (1, 1, 3)), samples), axis=1), [self.batch_size, 1],
                         './{}/test_{:04d}.png'.format(folder, idx))
-            save_images2(samples2, [self.batch_size, 1],
-                        './{}/test_{:04d}_mask.png'.format(folder, idx))
+            # save_images2(samples2, [self.batch_size, 1],
+            #             './{}/test_{:04d}_mask.png'.format(folder, idx))
