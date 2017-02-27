@@ -499,18 +499,19 @@ class pix2pix(object):
         for i, sample_image in enumerate(sample_images):
             idx = i+1
             print("sampling image ", idx)
-            samples, samples2 = self.sess.run(
-                [self.fake_B_sample, self.fake_C_sample],
+            fake_image, mask, background, foreground = self.sess.run(
+                [self.fake_B_sample, self.fake_C_sample, self.background, self.foreground],
                 feed_dict={self.real_data: sample_image}
             )
-            print(sample_image.shape)
-            print(samples2.shape)
-            print(samples.shape)
+            # print(sample_image.shape)
+            # print(samples2.shape)
+            # print(samples.shape)
             # sketch, mask, background, foreground, back+fore
             save_images(np.concatenate((np.tile(sample_image[:, :, :, 3:4], (1, 1, 1, 3)),
-                                        np.tile(2 * (samples2 - 0.5), (1, 1, 1, 3)),
-                                        self.background,
-                                        self.foreground, samples), axis=2), [self.batch_size, 1],
+                                        np.tile(2 * (mask - 0.5), (1, 1, 1, 3)),
+                                        background,
+                                        foreground,
+                                        fake_image), axis=2), [self.batch_size, 1],
                         './{}/test_{:04d}.png'.format(folder, idx))
             # save_images2(samples2, [self.batch_size, 1],
             #             './{}/test_{:04d}_mask.png'.format(folder, idx))
