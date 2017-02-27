@@ -503,7 +503,7 @@ class pix2pix(object):
             print(sample_image.shape)
             print(samples2.shape)
             print(samples.shape)
-            save_images(np.concatenate((sample_image[0, :, 64:128], np.tile(samples2, (1, 1, 3)), samples), axis=1), [self.batch_size, 1],
+            save_images(np.concatenate((np.tile(sample_image[:, :, :, 3:4], (1, 1, 1, 3)), np.tile(samples2, (1, 1, 1, 3)), samples), axis=1), [self.batch_size, 1],
                         './{}/test_{:04d}.png'.format(folder, idx))
             # save_images2(samples2, [self.batch_size, 1],
             #             './{}/test_{:04d}_mask.png'.format(folder, idx))
