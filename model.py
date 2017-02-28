@@ -294,7 +294,7 @@ class pix2pix(object):
                                                  [self.batch_size, s, s, self.input_c_dim], name='g_d9', with_w=True)
         # d9 is (256 x 256 x input_c_dim)
 
-        z = tf.random_normal([self.batch_size, 10])
+        z = tf.random_normal([self.batch_size, 1])
 
         self.d10, self.d10_w, self.d10_b = deconv2d(    tf.nn.relu(
                                                             tf.reshape(
@@ -367,7 +367,7 @@ class pix2pix(object):
 
         self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(tf.concat(3, [e6, z_frg])),
             [self.batch_size, s32, s32, self.gf_dim*8], name='g_d3', with_w=True)
-        d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 0.5)
+        d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 1.0)
         d3 = tf.concat(3, [d3, e5])
         # d3 is (8 x 8 x self.gf_dim*8*2)
 
@@ -404,7 +404,8 @@ class pix2pix(object):
 
         # d9 is (256 x 256 x input_c_dim)
 
-        z = tf.random_normal([self.batch_size, 10], seed=123)
+        #z = tf.random_normal([self.batch_size, 1], seed=456)
+        z = tf.ones([self.batch_size, 1])
 
         self.d10, self.d10_w, self.d10_b = deconv2d(tf.nn.relu(
             tf.reshape(
