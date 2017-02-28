@@ -254,7 +254,9 @@ class pix2pix(object):
         # d2 = tf.concat(3, [d2, e6])
         # d2 is (4 x 4 x self.gf_dim*8*2)
 
-        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(e6),
+        z_frg = tf.random_normal([self.batch_size, 1, 1, self.gf_dim * 8])
+
+        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(tf.concat(3, [e6, z_frg])),
             [self.batch_size, s32, s32, self.gf_dim*8], name='g_d3', with_w=True)
         d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 0.5)
         d3 = tf.concat(3, [d3, e5])
@@ -361,7 +363,9 @@ class pix2pix(object):
         # d2 = tf.concat(3, [d2, e6])
         # d2 is (4 x 4 x self.gf_dim*8*2)
 
-        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(e6),
+        z_frg = tf.random_normal([self.batch_size, 1, 1, self.gf_dim * 8])
+
+        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(tf.concat(3, [e6, z_frg])),
             [self.batch_size, s32, s32, self.gf_dim*8], name='g_d3', with_w=True)
         d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 0.5)
         d3 = tf.concat(3, [d3, e5])
