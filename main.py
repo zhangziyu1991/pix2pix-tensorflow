@@ -53,9 +53,9 @@ def main(_):
             model.train(args)
         else:
             model.test(args, 'test')
-            model.test(args, 'test_animated_0.08pi')
-            model.test(args, 'test_animated_0.16pi')
-            model.test(args, 'test_animated_0.25pi')
+            #model.test(args, 'test_animated_0.08pi')
+            #model.test(args, 'test_animated_0.16pi')
+            #model.test(args, 'test_animated_0.25pi')
 
 if __name__ == '__main__':
     tf.app.run()

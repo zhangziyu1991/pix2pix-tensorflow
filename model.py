@@ -89,7 +89,7 @@ class pix2pix(object):
         self.D, self.D_logits = self.discriminator(self.real_AB, reuse=False)
         self.D_, self.D_logits_ = self.discriminator(self.fake_AB, reuse=True)
 
-        self.fake_B_sample, self.fake_C_sample, self.foreground, self.background = self.sampler(self.real_A)
+        self.fake_B_sample, self.fake_C_sample, self.foreground, self.background, self.z_fgr = self.sampler(self.real_A)
 
         self.d_sum = tf.histogram_summary("d", self.D)
         self.d__sum = tf.histogram_summary("d_", self.D_)
@@ -254,9 +254,9 @@ class pix2pix(object):
         # d2 = tf.concat(3, [d2, e6])
         # d2 is (4 x 4 x self.gf_dim*8*2)
 
-        z_frg = tf.random_normal([self.batch_size, 1, 1, self.gf_dim * 8])
+        z_fgr = tf.random_normal([self.batch_size, 1, 1, 5])
 
-        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(tf.concat(3, [e6, z_frg])),
+        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(tf.concat(3, [e6, z_fgr])),
             [self.batch_size, s32, s32, self.gf_dim*8], name='g_d3', with_w=True)
         d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 0.5)
         d3 = tf.concat(3, [d3, e5])
@@ -363,9 +363,10 @@ class pix2pix(object):
         # d2 = tf.concat(3, [d2, e6])
         # d2 is (4 x 4 x self.gf_dim*8*2)
 
-        z_frg = tf.random_normal([self.batch_size, 1, 1, self.gf_dim * 8])
+        #z_fgr = tf.random_normal([self.batch_size, 1, 1, 5])
+        z_fgr = tf.zeros([self.batch_size, 1, 1, 5])
 
-        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(tf.concat(3, [e6, z_frg])),
+        self.d3, self.d3_w, self.d3_b = deconv2d(tf.nn.relu(tf.concat(3, [e6, z_fgr])),
             [self.batch_size, s32, s32, self.gf_dim*8], name='g_d3', with_w=True)
         d3 = tf.nn.dropout(self.g_bn_d3(self.d3), 1.0)
         d3 = tf.concat(3, [d3, e5])
@@ -404,8 +405,8 @@ class pix2pix(object):
 
         # d9 is (256 x 256 x input_c_dim)
 
-        #z = tf.random_normal([self.batch_size, 1], seed=456)
-        z = tf.ones([self.batch_size, 1])
+        z = tf.random_normal([self.batch_size, 1], seed=123)
+        #z = tf.ones([self.batch_size, 1])
 
         self.d10, self.d10_w, self.d10_b = deconv2d(tf.nn.relu(
             tf.reshape(
@@ -441,7 +442,8 @@ class pix2pix(object):
                       tf.mul(tf.nn.tanh(self.d15), tf.sub(tf.ones_like(mask), mask))), \
                tf.sigmoid(self.d9), \
                tf.nn.tanh(self.d8), \
-               tf.nn.tanh(self.d15)
+               tf.nn.tanh(self.d15), \
+               z_fgr
 
     def save(self, checkpoint_dir, step):
         model_name = "pix2pix.model"
@@ -504,16 +506,17 @@ class pix2pix(object):
         for i, sample_image in enumerate(sample_images):
             idx = i+1
             print("sampling image ", idx)
-            fake_image, mask, background, foreground = self.sess.run(
-                [self.fake_B_sample, self.fake_C_sample, self.background, self.foreground],
+            fake_image, mask, background, foreground, z = self.sess.run(
+                [self.fake_B_sample, self.fake_C_sample, self.background, self.foreground, self.z_fgr],
                 feed_dict={self.real_data: sample_image}
             )
-            print(sample_image.shape)
-            print(mask.shape)
-            print(background.shape)
-            print(foreground.shape)
-            print(fake_image.shape)
-            # sketch, mask, background, foreground, back+fore
+            #print(sample_image.shape)
+            #print(mask.shape)
+            #print(background.shape)
+            #print(foreground.shape)
+            #print(fake_image.shape)
+            # sketch, mask, background, foreground, fake_image
+            print(z)
             save_images(np.concatenate((np.tile(sample_image[:, :, :, 3:4], (1, 1, 1, 3)),
                                         np.tile(2 * (mask - 0.5), (1, 1, 1, 3)),
                                         background,
